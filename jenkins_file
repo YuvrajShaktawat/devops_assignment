@@ -1,0 +1,258 @@
+pipeline {
+    agent any
+    
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('aws-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+        AWS_DEFAULT_REGION    = 'ap-south-1'
+        TF_IN_AUTOMATION      = 'true'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code from SCM'
+                checkout scm
+            }
+        }
+        
+        stage('Stage 1: Deploy Infrastructure (IaC)') {
+            steps {
+                echo '═══════════════════════════════════════════════════════'
+                echo 'STAGE 1: Deploy Infrastructure (IaC)'
+                echo '═══════════════════════════════════════════════════════'
+                
+                dir('terraform') {
+                    script {
+                        // Step 1: Initialize IaC
+                        echo 'Step 1.1: Initialize IaC'
+                        sh 'terraform init -reconfigure'
+                        echo '✓ Terraform initialized'
+                        
+                        // Step 2: Deploy infrastructure
+                        echo 'Step 1.2: Deploy infrastructure'
+                        sh 'terraform plan -out=tfplan'
+                        sh 'terraform apply -auto-approve tfplan'
+                        echo '✓ Infrastructure deployed'
+                        
+                        // Step 3: Confirm EC2 creation
+                        echo 'Step 1.3: Confirm EC2 creation'
+                        sh 'terraform show | grep "aws_instance.nginx_server"'
+                        echo '✓ EC2 instance creation confirmed'
+                        
+                        echo ''
+                        echo '✓ STAGE 1 COMPLETED: Infrastructure deployed successfully'
+                    }
+                }
+            }
+        }
+        
+        stage('Stage 2: Configure EC2 & Deploy Application') {
+            steps {
+                echo '═══════════════════════════════════════════════════════'
+                echo 'STAGE 2: Configure EC2 & Deploy Application'
+                echo '═══════════════════════════════════════════════════════'
+                
+                dir('terraform') {
+                    script {
+                        // Get instance details
+                        def instanceId = sh(
+                            script: 'terraform output -raw instance_id',
+                            returnStdout: true
+                        ).trim()
+                        
+                        def publicIp = sh(
+                            script: 'terraform output -raw instance_public_ip',
+                            returnStdout: true
+                        ).trim()
+                        
+                        def privateIp = sh(
+                            script: 'terraform output -raw instance_private_ip',
+                            returnStdout: true
+                        ).trim()
+                        
+                        echo "Instance ID: ${instanceId}"
+                        echo "Public IP: ${publicIp}"
+                        echo "Private IP: ${privateIp}"
+                        
+                        // User-data script handles all configuration
+                        echo 'Step 2.1: Install NGINX - Handled by user-data script'
+                        echo 'Step 2.2: Generate HTML dynamically - Handled by user-data script'
+                        echo 'Step 2.3: Inject instance private IP - Handled by user-data script'
+                        echo 'Step 2.4: Ensure NGINX runs on port 80 - Handled by user-data script'
+                        
+                        echo ''
+                        echo 'Waiting for user-data script to complete...'
+                        
+                        // Wait for instance to be ready
+                        def maxAttempts = 30
+                        def attempt = 0
+                        def instanceReady = false
+                        
+                        while (attempt < maxAttempts && !instanceReady) {
+                            attempt++
+                            echo "Checking instance status... (${attempt}/${maxAttempts})"
+                            
+                            def statusCheck = sh(
+                                script: """
+                                    aws ec2 describe-instance-status \
+                                        --instance-ids ${instanceId} \
+                                        --region ${AWS_DEFAULT_REGION} \
+                                        --query 'InstanceStatuses[0].InstanceStatus.Status' \
+                                        --output text 2>/dev/null || echo 'initializing'
+                                """,
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (statusCheck == 'ok') {
+                                instanceReady = true
+                                echo '✓ Instance status checks passed'
+                            } else {
+                                sleep(time: 5, unit: 'SECONDS')
+                            }
+                        }
+                        
+                        // Additional wait for NGINX installation
+                        sleep(time: 45, unit: 'SECONDS')
+                        
+                        echo ''
+                        echo '✓ STAGE 2 COMPLETED: EC2 configured and application deployed'
+                    }
+                }
+            }
+        }
+        
+        stage('Stage 3: Deployment Validation') {
+            steps {
+                echo '═══════════════════════════════════════════════════════'
+                echo 'STAGE 3: Deployment Validation'
+                echo '═══════════════════════════════════════════════════════'
+                
+                dir('terraform') {
+                    script {
+                        // Retrieve EC2 public IP
+                        echo 'Step 3.1: Retrieve EC2 public IP or DNS'
+                        
+                        def publicIp = sh(
+                            script: 'terraform output -raw instance_public_ip',
+                            returnStdout: true
+                        ).trim()
+                        
+                        echo "EC2 Public IP: ${publicIp}"
+                        echo '✓ EC2 details retrieved'
+                        
+                        // Validate using curl
+                        echo ''
+                        echo 'Step 3.2: Validate using curl from Jenkins'
+                        echo "Executing: curl http://${publicIp}"
+                        
+                        def validationSuccess = false
+                        def maxAttempts = 24
+                        def attempt = 0
+                        
+                        while (attempt < maxAttempts && !validationSuccess) {
+                            attempt++
+                            
+                            def httpCode = sh(
+                                script: "curl -s -o /dev/null -w '%{http_code}' http://${publicIp} --connect-timeout 5 || echo '000'",
+                                returnStdout: true
+                            ).trim()
+                            
+                            if (httpCode == '200') {
+                                echo "✓ HTTP Response Code: ${httpCode}"
+                                
+                                def response = sh(
+                                    script: "curl -s http://${publicIp}",
+                                    returnStdout: true
+                                ).trim()
+                                
+                                echo ''
+                                echo 'Response received:'
+                                echo '─────────────────────────────────────────────────────'
+                                echo response.take(300)
+                                echo '─────────────────────────────────────────────────────'
+                                
+                                // Validate content
+                                if (response.contains('CSA DevOps Exam')) {
+                                    echo "✓ Response contains: 'CSA DevOps Exam'"
+                                } else {
+                                    error "✗ Response missing: 'CSA DevOps Exam'"
+                                }
+                                
+                                if (response.contains('Instance IP:')) {
+                                    echo "✓ Response contains: 'Instance IP:'"
+                                } else {
+                                    error "✗ Response missing: 'Instance IP:'"
+                                }
+                                
+                                validationSuccess = true
+                            } else {
+                                if (attempt < maxAttempts) {
+                                    sleep(time: 5, unit: 'SECONDS')
+                                }
+                            }
+                        }
+                        
+                        if (!validationSuccess) {
+                            error 'Deployment validation failed'
+                        }
+                        
+                        echo ''
+                        echo '✓ STAGE 3 COMPLETED: Deployment validated successfully'
+                    }
+                }
+            }
+        }
+        
+        stage('Stage 4: Output Results') {
+            steps {
+                echo '═══════════════════════════════════════════════════════'
+                echo 'STAGE 4: Output Results'
+                echo '═══════════════════════════════════════════════════════'
+                
+                dir('terraform') {
+                    script {
+                        def publicIp = sh(
+                            script: 'terraform output -raw instance_public_ip',
+                            returnStdout: true
+                        ).trim()
+                        
+                        def publicDns = sh(
+                            script: 'terraform output -raw instance_public_dns',
+                            returnStdout: true
+                        ).trim()
+                        
+                        echo ''
+                        echo '╔════════════════════════════════════════════════════════════╗'
+                        echo '║              DEPLOYMENT SUCCESSFUL                         ║'
+                        echo '╠════════════════════════════════════════════════════════════╣'
+                        echo "║  Application URL:  http://${publicIp.padRight(32)} ║"
+                        echo "║  EC2 Public IP:    ${publicIp.padRight(37)} ║"
+                        echo "║  EC2 Public DNS:   ${publicDns.padRight(37)} ║"
+                        echo '║  Status: ✓ Deployment completed successfully              ║'
+                        echo '╚════════════════════════════════════════════════════════════╝'
+                        echo ''
+                        echo '✓ STAGE 4 COMPLETED: Results printed'
+                        echo ''
+                        echo 'All 4 mandatory stages completed successfully!'
+                        echo "Access your application at: http://${publicIp}"
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '✓ Pipeline completed successfully!'
+        }
+        failure {
+            echo '✗ Pipeline failed. Check logs for details.'
+        }
+        always {
+            dir('terraform') {
+                archiveArtifacts artifacts: 'tfplan.json', allowEmptyArchive: true
+            }
+        }
+    }
+}
