@@ -19,7 +19,7 @@ This project demonstrates **production-grade DevOps practices** by implementing 
 - ✅ **Production-ready patterns** - Implements retry logic, validation, and error handling
 - ✅ **Infrastructure as Code** - Complete environment reproducible from code
 
-**Live Demo:** [![View Demo](docs/images/demo.jpeg)](#dashboard-output)
+**Live Demo:** [![View Demo](docs/demo-image/ Demo_running_instance_image.jpg)](#dashboard-output)
 
 ---
 
