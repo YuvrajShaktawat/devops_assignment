@@ -1,0 +1,787 @@
+Started by user yuvraj shaktawat
+Obtained jenkins_file from git https://github.com/YuvrajShaktawat/devops_assignment.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential Devops_git_User
+ > C:\Program Files\Git\cmd\git.exe rev-parse --resolve-git-dir C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\.git # timeout=10
+Fetching changes from the remote Git repository
+ > C:\Program Files\Git\cmd\git.exe config remote.origin.url https://github.com/YuvrajShaktawat/devops_assignment.git # timeout=10
+Fetching upstream changes from https://github.com/YuvrajShaktawat/devops_assignment.git
+ > C:\Program Files\Git\cmd\git.exe --version # timeout=10
+ > git --version # 'git version 2.45.1.windows.1'
+using GIT_ASKPASS to set credentials 
+ > C:\Program Files\Git\cmd\git.exe fetch --tags --force --progress -- https://github.com/YuvrajShaktawat/devops_assignment.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > C:\Program Files\Git\cmd\git.exe rev-parse "refs/remotes/origin/main^{commit}" # timeout=10
+Checking out Revision 8133ef51df96eb2fa850ae3e6e804398205e75f0 (refs/remotes/origin/main)
+ > C:\Program Files\Git\cmd\git.exe config core.sparsecheckout # timeout=10
+ > C:\Program Files\Git\cmd\git.exe checkout -f 8133ef51df96eb2fa850ae3e6e804398205e75f0 # timeout=10
+Commit message: "Refactor Jenkins pipeline for cross-platform compatibility"
+ > C:\Program Files\Git\cmd\git.exe rev-list --no-walk db54f6ae6354a5a366815c078f3c8a0ecab521be # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of %AWS_ACCESS_KEY_ID% or %AWS_SECRET_ACCESS_KEY%
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout Code)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+Checking out code from branch: main
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+using credential Devops_git_User
+ > C:\Program Files\Git\cmd\git.exe rev-parse --resolve-git-dir C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\.git # timeout=10
+Fetching changes from the remote Git repository
+ > C:\Program Files\Git\cmd\git.exe config remote.origin.url https://github.com/YuvrajShaktawat/devops_assignment.git # timeout=10
+Cleaning workspace
+ > C:\Program Files\Git\cmd\git.exe rev-parse --verify HEAD # timeout=10
+Resetting working tree
+ > C:\Program Files\Git\cmd\git.exe reset --hard # timeout=10
+ > C:\Program Files\Git\cmd\git.exe clean -fdx # timeout=10
+Fetching upstream changes from https://github.com/YuvrajShaktawat/devops_assignment.git
+ > C:\Program Files\Git\cmd\git.exe --version # timeout=10
+ > git --version # 'git version 2.45.1.windows.1'
+using GIT_ASKPASS to set credentials 
+ > C:\Program Files\Git\cmd\git.exe fetch --tags --force --progress -- https://github.com/YuvrajShaktawat/devops_assignment.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > C:\Program Files\Git\cmd\git.exe rev-parse "refs/remotes/origin/main^{commit}" # timeout=10
+Checking out Revision 8133ef51df96eb2fa850ae3e6e804398205e75f0 (refs/remotes/origin/main)
+ > C:\Program Files\Git\cmd\git.exe config core.sparsecheckout # timeout=10
+ > C:\Program Files\Git\cmd\git.exe checkout -f 8133ef51df96eb2fa850ae3e6e804398205e75f0 # timeout=10
+Commit message: "Refactor Jenkins pipeline for cross-platform compatibility"
+[Pipeline] echo
+âœ“ Code checked out successfully from branch: main
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Stage 1: Deploy Infrastructure (IaC))
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] echo
+STAGE 1: Deploy Infrastructure (IaC)
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] dir
+Running in C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform
+[Pipeline] {
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+Step 1.1: Initialize IaC
+[Pipeline] isUnix
+[Pipeline] bat
+
+C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform>terraform init -reconfigure 
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Installing hashicorp/aws v6.31.0...
+- Installed hashicorp/aws v6.31.0 (signed by HashiCorp)
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[Pipeline] echo
+âœ“ Terraform initialized
+[Pipeline] echo
+Step 1.2: Deploy infrastructure
+[Pipeline] isUnix
+[Pipeline] bat
+
+C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform>terraform plan -out=tfplan 
+[0m[1mdata.aws_vpc.default: Reading...[0m[0m
+[0m[1mdata.aws_ami.amazon_linux: Reading...[0m[0m
+[0m[1mdata.aws_ami.amazon_linux: Read complete after 0s [id=ami-0ff5003538b60d5ec][0m
+[0m[1mdata.aws_vpc.default: Read complete after 0s [id=vpc-07d06868ceaa4af04][0m
+[0m[1mdata.aws_subnets.default: Reading...[0m[0m
+[0m[1mdata.aws_subnets.default: Read complete after 1s [id=ap-south-1][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # aws_instance.nginx_server[0m will be created
+[0m  [32m+[0m[0m resource "aws_instance" "nginx_server" {
+      [32m+[0m[0m ami                                  = "ami-0ff5003538b60d5ec"
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m associate_public_ip_address          = (known after apply)
+      [32m+[0m[0m availability_zone                    = (known after apply)
+      [32m+[0m[0m disable_api_stop                     = (known after apply)
+      [32m+[0m[0m disable_api_termination              = (known after apply)
+      [32m+[0m[0m ebs_optimized                        = (known after apply)
+      [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+      [32m+[0m[0m force_destroy                        = false
+      [32m+[0m[0m get_password_data                    = false
+      [32m+[0m[0m host_id                              = (known after apply)
+      [32m+[0m[0m host_resource_group_arn              = (known after apply)
+      [32m+[0m[0m iam_instance_profile                 = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_initiated_shutdown_behavior = (known after apply)
+      [32m+[0m[0m instance_lifecycle                   = (known after apply)
+      [32m+[0m[0m instance_state                       = (known after apply)
+      [32m+[0m[0m instance_type                        = "t2.micro"
+      [32m+[0m[0m ipv6_address_count                   = (known after apply)
+      [32m+[0m[0m ipv6_addresses                       = (known after apply)
+      [32m+[0m[0m key_name                             = (known after apply)
+      [32m+[0m[0m monitoring                           = (known after apply)
+      [32m+[0m[0m outpost_arn                          = (known after apply)
+      [32m+[0m[0m password_data                        = (known after apply)
+      [32m+[0m[0m placement_group                      = (known after apply)
+      [32m+[0m[0m placement_group_id                   = (known after apply)
+      [32m+[0m[0m placement_partition_number           = (known after apply)
+      [32m+[0m[0m primary_network_interface_id         = (known after apply)
+      [32m+[0m[0m private_dns                          = (known after apply)
+      [32m+[0m[0m private_ip                           = (known after apply)
+      [32m+[0m[0m public_dns                           = (known after apply)
+      [32m+[0m[0m public_ip                            = (known after apply)
+      [32m+[0m[0m region                               = "ap-south-1"
+      [32m+[0m[0m secondary_private_ips                = (known after apply)
+      [32m+[0m[0m security_groups                      = (known after apply)
+      [32m+[0m[0m source_dest_check                    = true
+      [32m+[0m[0m spot_instance_request_id             = (known after apply)
+      [32m+[0m[0m subnet_id                            = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Name" = "nginx-web-server"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Name" = "nginx-web-server"
+        }
+      [32m+[0m[0m tenancy                              = (known after apply)
+      [32m+[0m[0m user_data                            = <<-EOT
+            #!/bin/bash
+            
+            # Enable logging
+            exec > >(tee /var/log/user-data.log)
+            exec 2>&1
+            
+            echo "=========================================="
+            echo "Starting User-Data Script Execution"
+            echo "Time: $(date)"
+            echo "=========================================="
+            
+            # Update system
+            echo "Step 1: Updating system packages..."
+            dnf update -y || yum update -y
+            echo "âœ“ System updated"
+            
+            # Install NGINX
+            echo "Step 2: Installing NGINX..."
+            dnf install -y nginx || yum install -y nginx
+            
+            if [ $? -eq 0 ]; then
+                echo "âœ“ NGINX installed successfully"
+            else
+                echo "âœ— NGINX installation failed!"
+                exit 1
+            fi
+            
+            # Get instance private IP
+            echo "Step 3: Getting private IP address..."
+            PRIVATE_IP=$(hostname -I | awk '{print $1}')
+            echo "Private IP: $PRIVATE_IP"
+            
+            # Create backup of original index.html
+            if [ -f /usr/share/nginx/html/index.html ]; then
+                echo "Backing up original index.html..."
+                cp /usr/share/nginx/html/index.html /usr/share/nginx/html/index.html.backup
+            fi
+            
+            # Create HTML file with dynamic IP
+            echo "Step 4: Creating HTML file..."
+            cat > /usr/share/nginx/html/index.html <<'EOF'
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>CSA DevOps Exam</title>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    }
+                    .container {
+                        text-align: center;
+                        background: white;
+                        padding: 50px;
+                        border-radius: 15px;
+                        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                        max-width: 500px;
+                    }
+                    h1 {
+                        color: #333;
+                        margin-bottom: 20px;
+                        font-size: 2em;
+                    }
+                    .ip-label {
+                        color: #666;
+                        font-size: 1.1em;
+                        margin-bottom: 10px;
+                    }
+                    .ip {
+                        color: #667eea;
+                        font-weight: bold;
+                        font-size: 1.5em;
+                        padding: 10px 20px;
+                        background: #f0f4ff;
+                        border-radius: 8px;
+                        display: inline-block;
+                    }
+                    .status {
+                        margin-top: 30px;
+                        padding: 10px;
+                        background: #d4edda;
+                        border: 1px solid #c3e6cb;
+                        border-radius: 5px;
+                        color: #155724;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>CSA DevOps Exam</h1>
+                    <p class="ip-label">Instance IP:</p>
+                    <div class="ip">PRIVATE_IP_PLACEHOLDER</div>
+                    <div class="status">
+                        âœ“ NGINX is running successfully
+                    </div>
+                </div>
+            </body>
+            </html>
+            EOF
+            
+            # Replace placeholder with actual IP
+            sed -i "s/PRIVATE_IP_PLACEHOLDER/$PRIVATE_IP/g" /usr/share/nginx/html/index.html
+            
+            echo "âœ“ HTML file created"
+            
+            # Verify file was created
+            if [ -f /usr/share/nginx/html/index.html ]; then
+                echo "âœ“ Verified: index.html exists"
+                echo "Content preview:"
+                head -20 /usr/share/nginx/html/index.html
+            else
+                echo "âœ— Error: index.html was not created!"
+                exit 1
+            fi
+            
+            # Start NGINX
+            echo "Step 5: Starting NGINX service..."
+            systemctl start nginx
+            
+            if [ $? -eq 0 ]; then
+                echo "âœ“ NGINX started successfully"
+            else
+                echo "âœ— Failed to start NGINX!"
+                exit 1
+            fi
+            
+            # Enable NGINX to start on boot
+            echo "Step 6: Enabling NGINX on boot..."
+            systemctl enable nginx
+            echo "âœ“ NGINX enabled on boot"
+            
+            # Check NGINX status
+            echo "Step 7: Checking NGINX status..."
+            systemctl status nginx --no-pager
+            
+            # Test if NGINX is responding locally
+            echo "Step 8: Testing NGINX locally..."
+            sleep 3
+            curl -s http://localhost | head -20
+            
+            if [ $? -eq 0 ]; then
+                echo "âœ“ NGINX is responding to local requests"
+            else
+                echo "âœ— NGINX is not responding!"
+            fi
+            
+            # Final status
+            echo ""
+            echo "=========================================="
+            echo "User-Data Script Completed Successfully"
+            echo "Time: $(date)"
+            echo "=========================================="
+            echo ""
+            echo "Summary:"
+            echo "- Private IP: $PRIVATE_IP"
+            echo "- NGINX Status: $(systemctl is-active nginx)"
+            echo "- NGINX Enabled: $(systemctl is-enabled nginx)"
+            echo ""
+            echo "Check this log at: /var/log/user-data.log"
+            echo "=========================================="
+        EOT
+      [32m+[0m[0m user_data_base64                     = (known after apply)
+      [32m+[0m[0m user_data_replace_on_change          = false
+      [32m+[0m[0m vpc_security_group_ids               = (known after apply)
+
+      [32m+[0m[0m capacity_reservation_specification (known after apply)
+
+      [32m+[0m[0m cpu_options (known after apply)
+
+      [32m+[0m[0m ebs_block_device (known after apply)
+
+      [32m+[0m[0m enclave_options (known after apply)
+
+      [32m+[0m[0m ephemeral_block_device (known after apply)
+
+      [32m+[0m[0m instance_market_options (known after apply)
+
+      [32m+[0m[0m maintenance_options (known after apply)
+
+      [32m+[0m[0m metadata_options (known after apply)
+
+      [32m+[0m[0m network_interface (known after apply)
+
+      [32m+[0m[0m primary_network_interface (known after apply)
+
+      [32m+[0m[0m private_dns_name_options (known after apply)
+
+      [32m+[0m[0m root_block_device (known after apply)
+    }
+
+[1m  # aws_security_group.nginx_sg[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "nginx_sg" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group for NGINX web server"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+                [90m# (1 unchanged attribute hidden)[0m[0m
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "HTTP"
+              [32m+[0m[0m from_port        = 80
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 80
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "SSH"
+              [32m+[0m[0m from_port        = 22
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 22
+            },
+        ]
+      [32m+[0m[0m name                   = "nginx-security-group"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m region                 = "ap-south-1"
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Name" = "nginx-security-group"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Name" = "nginx-security-group"
+        }
+      [32m+[0m[0m vpc_id                 = "vpc-07d06868ceaa4af04"
+    }
+
+[1mPlan:[0m 2 to add, 0 to change, 0 to destroy.
+[0m
+Changes to Outputs:
+  [32m+[0m[0m instance_id         = (known after apply)
+  [32m+[0m[0m instance_private_ip = (known after apply)
+  [32m+[0m[0m instance_public_dns = (known after apply)
+  [32m+[0m[0m instance_public_ip  = (known after apply)
+  [32m+[0m[0m security_group_id   = (known after apply)
+[Pipeline] bat
+
+C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform>terraform apply -auto-approve tfplan 
+[0m[1maws_security_group.nginx_sg: Creating...[0m[0m
+[0m[1maws_security_group.nginx_sg: Creation complete after 3s [id=sg-0bd7eaefdde49c61b][0m
+[0m[1maws_instance.nginx_server: Creating...[0m[0m
+[0m[1maws_instance.nginx_server: Still creating... [10s elapsed][0m[0m
+[0m[1maws_instance.nginx_server: Creation complete after 14s [id=i-0b999e9029f133483][0m
+[0m[1m[32m
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+[0m[0m[1m[32m
+Outputs:
+
+[0minstance_id = "i-0b999e9029f133483"
+instance_private_ip = "172.31.6.100"
+instance_public_dns = "ec2-13-200-237-42.ap-south-1.compute.amazonaws.com"
+instance_public_ip = "13.200.237.42"
+security_group_id = "sg-0bd7eaefdde49c61b"
+[Pipeline] echo
+âœ“ Infrastructure deployed
+[Pipeline] echo
+Step 1.3: Confirm EC2 creation
+[Pipeline] isUnix
+[Pipeline] bat
+
+C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform>terraform show   | findstr "aws_instance.nginx_server" 
+# aws_instance.nginx_server:
+[Pipeline] echo
+âœ“ EC2 instance creation confirmed
+[Pipeline] echo
+
+[Pipeline] echo
+âœ“ STAGE 1 COMPLETED: Infrastructure deployed successfully
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // dir
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Stage 2: Configure EC2 & Deploy Application)
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] echo
+STAGE 2: Configure EC2 & Deploy Application
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] dir
+Running in C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform
+[Pipeline] {
+[Pipeline] script
+[Pipeline] {
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] bat
+[Pipeline] bat
+[Pipeline] echo
+Instance ID: i-0b999e9029f133483
+[Pipeline] echo
+Public IP: 13.200.237.42
+[Pipeline] echo
+Private IP: 172.31.6.100
+[Pipeline] echo
+Step 2.1: Install NGINX - Handled by user-data script
+[Pipeline] echo
+Step 2.2: Generate HTML dynamically - Handled by user-data script
+[Pipeline] echo
+Step 2.3: Inject instance private IP - Handled by user-data script
+[Pipeline] echo
+Step 2.4: Ensure NGINX runs on port 80 - Handled by user-data script
+[Pipeline] echo
+
+[Pipeline] echo
+Waiting for user-data script to complete...
+[Pipeline] echo
+Checking instance status... (1/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (2/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (3/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (4/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (5/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (6/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (7/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (8/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (9/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (10/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (11/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (12/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (13/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (14/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (15/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] sleep
+Sleeping for 5 sec
+[Pipeline] echo
+Checking instance status... (16/30)
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] echo
+âœ“ Instance status checks passed
+[Pipeline] echo
+Waiting for user-data script to complete NGINX installation...
+[Pipeline] sleep
+Sleeping for 1 min 0 sec
+[Pipeline] echo
+
+[Pipeline] echo
+âœ“ STAGE 2 COMPLETED: EC2 configured and application deployed
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // dir
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Stage 3: Deployment Validation)
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] echo
+STAGE 3: Deployment Validation
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] dir
+Running in C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform
+[Pipeline] {
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+Step 3.1: Retrieve EC2 public IP or DNS
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] bat
+[Pipeline] echo
+EC2 Public IP: 13.200.237.42
+[Pipeline] echo
+EC2 Public DNS: ec2-13-200-237-42.ap-south-1.compute.amazonaws.com
+[Pipeline] echo
+âœ“ EC2 details retrieved
+[Pipeline] echo
+
+[Pipeline] echo
+Step 3.2: Validate using curl from Jenkins
+[Pipeline] echo
+Executing: curl http://13.200.237.42
+[Pipeline] echo
+Validation attempt 1/24...
+[Pipeline] isUnix
+[Pipeline] powershell
+[Pipeline] echo
+âœ“ HTTP Response Code: 200
+[Pipeline] isUnix
+[Pipeline] powershell
+[Pipeline] echo
+
+[Pipeline] echo
+Response received from EC2:
+[Pipeline] echo
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+[Pipeline] echo
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSA DevOps Exam</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center
+[Pipeline] echo
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+[Pipeline] echo
+âœ“ Response contains: 'CSA DevOps Exam'
+[Pipeline] echo
+âœ“ Response contains: 'Instance IP:'
+[Pipeline] echo
+
+[Pipeline] echo
+âœ“ STAGE 3 COMPLETED: Deployment validated successfully
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // dir
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Stage 4: Output Results)
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] echo
+STAGE 4: Output Results
+[Pipeline] echo
+â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] dir
+Running in C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform
+[Pipeline] {
+[Pipeline] script
+[Pipeline] {
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] bat
+[Pipeline] bat
+[Pipeline] echo
+
+[Pipeline] echo
+â•”â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•—
+[Pipeline] echo
+â•‘              DEPLOYMENT SUCCESSFUL                         â•‘
+[Pipeline] echo
+â• â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•£
+[Pipeline] echo
+â•‘  Application URL:  http://13.200.237.42                      â•‘
+[Pipeline] echo
+â•‘  EC2 Public IP:    13.200.237.42                             â•‘
+[Pipeline] echo
+â•‘  EC2 Public DNS:   ec2-13-200-237-42.ap-south-1.compute.amazonaws.com                            â•‘
+[Pipeline] echo
+â•‘  Instance ID:      i-0b999e9029f133483                           â•‘
+[Pipeline] echo
+â•‘  Status: âœ“ Deployment completed successfully              â•‘
+[Pipeline] echo
+â•šâ•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] echo
+
+[Pipeline] echo
+âœ“ STAGE 4 COMPLETED: Results printed
+[Pipeline] echo
+
+[Pipeline] echo
+All 4 mandatory stages completed successfully!
+[Pipeline] echo
+Access your application at: http://13.200.237.42
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // dir
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Destroy Infrastructure)
+Stage "Destroy Infrastructure" skipped due to when conditional
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] dir
+Running in C:\ProgramData\Jenkins\.jenkins\workspace\Devops_Assignment_pipeline\terraform
+[Pipeline] {
+[Pipeline] isUnix
+[Pipeline] bat
+[Pipeline] archiveArtifacts
+Archiving artifacts
+[Pipeline] }
+[Pipeline] // dir
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+
+[Pipeline] echo
+â•”â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•—
+[Pipeline] echo
+â•‘   Pipeline Completed Successfully             â•‘
+[Pipeline] echo
+â•‘   All 4 Mandatory Stages Executed              â•‘
+[Pipeline] echo
+â•šâ•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS

@@ -1,4 +1,4 @@
-# 🚀 Automated NGINX Deployment Pipeline on AWS
+﻿# 🚀 Automated NGINX Deployment Pipeline on AWS
 
 > **End-to-end CI/CD automation for infrastructure provisioning and web server deployment using Jenkins, Terraform, and AWS**
 
@@ -19,7 +19,7 @@ This project demonstrates **production-grade DevOps practices** by implementing 
 - ✅ **Production-ready patterns** - Implements retry logic, validation, and error handling
 - ✅ **Infrastructure as Code** - Complete environment reproducible from code
 
-**Live Demo:** [View Sample Deployment Output](#dashboard-output)
+**Live Demo:** [![View Demo](docs/images/demo.jpeg)](#dashboard-output)
 
 ---
 
@@ -84,7 +84,10 @@ This project demonstrates **production-grade DevOps practices** by implementing 
 ```
 devops_assignment/
 ├── README.md                    # Project documentation
-├── jenkins_file                 # Jenkins pipeline definition (Groovy)
+├── Jenkins/			   # Jenkins_files
+│   ├── Jenkins_file		   # Jenkins pipeline definition (Groovy)
+│   ├── Jenkins_setup_readme    # Readme file for Jenkins installation
+│   └── Pipeline console output # console output for successful pipeline
 ├── terraform/                   # Infrastructure as Code
 │   ├── main.tf                 # AWS resource definitions
 │   ├── variables.tf            # Input variables
@@ -92,7 +95,7 @@ devops_assignment/
 │   ├── versions.tf             # Provider version constraints
 │   └── user-data.sh            # EC2 bootstrap script
 └── docs/                        # Additional documentation
-    ├── SETUP-GUIDE.md
+    ├── demo-image
     └── TROUBLESHOOTING-GUIDE.md
 ```
 
@@ -444,3 +447,4 @@ curl http://$(terraform output -raw instance_public_ip)
 **Project Status:** ✅ Production Ready  
 **Pipeline Status:** ✅ Passing  
 **Test Coverage:** ✅ Validated
+
