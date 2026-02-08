@@ -19,7 +19,9 @@ This project demonstrates **production-grade DevOps practices** by implementing 
 - ✅ **Production-ready patterns** - Implements retry logic, validation, and error handling
 - ✅ **Infrastructure as Code** - Complete environment reproducible from code
 
-**Live Demo:** [![View Demo](docs/demo-image/ Demo_running_instance_image.jpg)](#dashboard-output)
+## Live Deployment Preview
+
+[![Deployment Preview](docs/demo-image/Demo_running_instance_image.jpg)](https://github.com/YuvrajShaktawat/devops_assignment/blob/main/docs/demo-image/Demo_running_instance_image.jpg)
 
 ---
 
@@ -344,7 +346,7 @@ http://<EC2_PUBLIC_IP>
 
 ---
 
-## 📊 Project Highlights for Recruiters
+## ?? Project Highlights for Recruiters
 
 ### **Skills Demonstrated**
 
