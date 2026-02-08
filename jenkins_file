@@ -4,7 +4,7 @@ pipeline {
     parameters {
         choice(
             name: 'BRANCH_NAME',
-            choices: ['dev', 'feature/terraform', 'feature/jenkins', 'feature/nginx-userdata', 'main'],
+            choices: ['main', 'develop', 'feature/terraform-setup', 'feature/jenkins-pipeline'],
             description: 'Select branch to deploy from'
         )
         booleanParam(
@@ -32,9 +32,12 @@ pipeline {
                 script {
                     echo "Checking out code from branch: ${params.BRANCH_NAME}"
                     
+                    // For first run without parameters, use main branch
+                    def branchToCheckout = params.BRANCH_NAME ?: 'main'
+                    
                     checkout([
                         $class: 'GitSCM',
-                        branches: [[name: "*/${params.BRANCH_NAME}"]],
+                        branches: [[name: "*/${branchToCheckout}"]],
                         doGenerateSubmoduleConfigurations: false,
                         extensions: [
                             [$class: 'CleanBeforeCheckout']
@@ -45,7 +48,7 @@ pipeline {
                         ]]
                     ])
                     
-                    echo "✓ Code checked out successfully from branch: ${params.BRANCH_NAME}"
+                    echo "✓ Code checked out successfully from branch: ${branchToCheckout}"
                 }
             }
         }
@@ -63,21 +66,35 @@ pipeline {
                     script {
                         // Step 1: Initialize IaC
                         echo 'Step 1.1: Initialize IaC'
-                        sh 'terraform init -reconfigure'
+                        
+                        // Windows-compatible command
+                        if (isUnix()) {
+                            sh 'terraform init -reconfigure'
+                        } else {
+                            bat 'terraform init -reconfigure'
+                        }
                         echo '✓ Terraform initialized'
                         
                         // Step 2: Deploy infrastructure
                         echo 'Step 1.2: Deploy infrastructure'
-                        sh 'terraform plan -out=tfplan'
-                        sh 'terraform apply -auto-approve tfplan'
+                        
+                        if (isUnix()) {
+                            sh 'terraform plan -out=tfplan'
+                            sh 'terraform apply -auto-approve tfplan'
+                        } else {
+                            bat 'terraform plan -out=tfplan'
+                            bat 'terraform apply -auto-approve tfplan'
+                        }
                         echo '✓ Infrastructure deployed'
                         
                         // Step 3: Confirm EC2 creation
                         echo 'Step 1.3: Confirm EC2 creation'
-                        sh '''
-                            echo "Verifying EC2 instance creation..."
-                            terraform show | grep "aws_instance.nginx_server"
-                        '''
+                        
+                        if (isUnix()) {
+                            sh 'terraform show | grep "aws_instance.nginx_server"'
+                        } else {
+                            bat 'terraform show | findstr "aws_instance.nginx_server"'
+                        }
                         echo '✓ EC2 instance creation confirmed'
                         
                         echo ''
@@ -99,74 +116,85 @@ pipeline {
                 dir('terraform') {
                     script {
                         // Get instance details
-                        def instanceId = sh(
-                            script: 'terraform output -raw instance_id',
-                            returnStdout: true
-                        ).trim()
+                        def instanceId = ''
+                        def publicIp = ''
+                        def privateIp = ''
                         
-                        def publicIp = sh(
-                            script: 'terraform output -raw instance_public_ip',
-                            returnStdout: true
-                        ).trim()
-                        
-                        def privateIp = sh(
-                            script: 'terraform output -raw instance_private_ip',
-                            returnStdout: true
-                        ).trim()
+                        if (isUnix()) {
+                            instanceId = sh(script: 'terraform output -raw instance_id', returnStdout: true).trim()
+                            publicIp = sh(script: 'terraform output -raw instance_public_ip', returnStdout: true).trim()
+                            privateIp = sh(script: 'terraform output -raw instance_private_ip', returnStdout: true).trim()
+                        } else {
+                            instanceId = bat(script: '@terraform output -raw instance_id', returnStdout: true).trim()
+                            publicIp = bat(script: '@terraform output -raw instance_public_ip', returnStdout: true).trim()
+                            privateIp = bat(script: '@terraform output -raw instance_private_ip', returnStdout: true).trim()
+                        }
                         
                         echo "Instance ID: ${instanceId}"
                         echo "Public IP: ${publicIp}"
                         echo "Private IP: ${privateIp}"
                         
-                        // User-data script handles all these steps automatically:
+                        // User-data script handles all configuration
                         echo 'Step 2.1: Install NGINX - Handled by user-data script'
                         echo 'Step 2.2: Generate HTML dynamically - Handled by user-data script'
                         echo 'Step 2.3: Inject instance private IP - Handled by user-data script'
                         echo 'Step 2.4: Ensure NGINX runs on port 80 - Handled by user-data script'
                         
-                        // Wait for user-data script to complete
                         echo ''
-                        echo 'Waiting for user-data script to complete installation and configuration...'
+                        echo 'Waiting for user-data script to complete...'
                         
-                        // Check instance status
+                        // Wait for instance to be ready
                         def maxAttempts = 30
                         def attempt = 0
                         def instanceReady = false
                         
                         while (attempt < maxAttempts && !instanceReady) {
                             attempt++
-                            echo "Checking instance status... (Attempt ${attempt}/${maxAttempts})"
+                            echo "Checking instance status... (${attempt}/${maxAttempts})"
                             
-                            def statusCheck = sh(
-                                script: """
-                                    aws ec2 describe-instance-status \
-                                        --instance-ids ${instanceId} \
-                                        --region ${AWS_DEFAULT_REGION} \
-                                        --query 'InstanceStatuses[0].InstanceStatus.Status' \
-                                        --output text 2>/dev/null || echo 'initializing'
-                                """,
-                                returnStdout: true
-                            ).trim()
+                            def statusCheck = ''
+                            try {
+                                if (isUnix()) {
+                                    statusCheck = sh(
+                                        script: """
+                                            aws ec2 describe-instance-status \
+                                                --instance-ids ${instanceId} \
+                                                --region ${AWS_DEFAULT_REGION} \
+                                                --query 'InstanceStatuses[0].InstanceStatus.Status' \
+                                                --output text 2>/dev/null || echo 'initializing'
+                                        """,
+                                        returnStdout: true
+                                    ).trim()
+                                } else {
+                                    statusCheck = bat(
+                                        script: """
+                                            @aws ec2 describe-instance-status ^
+                                                --instance-ids ${instanceId} ^
+                                                --region ${AWS_DEFAULT_REGION} ^
+                                                --query "InstanceStatuses[0].InstanceStatus.Status" ^
+                                                --output text 2>nul || echo initializing
+                                        """,
+                                        returnStdout: true
+                                    ).trim()
+                                }
+                            } catch (Exception e) {
+                                statusCheck = 'initializing'
+                            }
                             
                             if (statusCheck == 'ok') {
                                 instanceReady = true
                                 echo '✓ Instance status checks passed'
                             } else {
-                                echo "Instance status: ${statusCheck}"
                                 sleep(time: 5, unit: 'SECONDS')
                             }
                         }
                         
-                        // Additional wait for user-data script
+                        // Additional wait for NGINX installation
                         echo 'Waiting for user-data script to complete NGINX installation...'
                         sleep(time: 60, unit: 'SECONDS')
                         
                         echo ''
                         echo '✓ STAGE 2 COMPLETED: EC2 configured and application deployed'
-                        echo "  - NGINX installed: ✓"
-                        echo "  - HTML generated with dynamic content: ✓"
-                        echo "  - Instance private IP (${privateIp}) injected: ✓"
-                        echo "  - NGINX running on port 80: ✓"
                     }
                 }
             }
@@ -183,24 +211,25 @@ pipeline {
                 
                 dir('terraform') {
                     script {
-                        // Step 1: Retrieve EC2 public IP or DNS
+                        // Retrieve EC2 public IP
                         echo 'Step 3.1: Retrieve EC2 public IP or DNS'
                         
-                        def publicIp = sh(
-                            script: 'terraform output -raw instance_public_ip',
-                            returnStdout: true
-                        ).trim()
+                        def publicIp = ''
+                        def publicDns = ''
                         
-                        def publicDns = sh(
-                            script: 'terraform output -raw instance_public_dns',
-                            returnStdout: true
-                        ).trim()
+                        if (isUnix()) {
+                            publicIp = sh(script: 'terraform output -raw instance_public_ip', returnStdout: true).trim()
+                            publicDns = sh(script: 'terraform output -raw instance_public_dns', returnStdout: true).trim()
+                        } else {
+                            publicIp = bat(script: '@terraform output -raw instance_public_ip', returnStdout: true).trim()
+                            publicDns = bat(script: '@terraform output -raw instance_public_dns', returnStdout: true).trim()
+                        }
                         
                         echo "EC2 Public IP: ${publicIp}"
                         echo "EC2 Public DNS: ${publicDns}"
                         echo '✓ EC2 details retrieved'
                         
-                        // Step 2: Validate using curl from Jenkins
+                        // Validate using curl
                         echo ''
                         echo 'Step 3.2: Validate using curl from Jenkins'
                         echo "Executing: curl http://${publicIp}"
@@ -213,63 +242,82 @@ pipeline {
                             attempt++
                             echo "Validation attempt ${attempt}/${maxAttempts}..."
                             
-                            def httpCode = sh(
-                                script: "curl -s -o /dev/null -w '%{http_code}' http://${publicIp} --connect-timeout 5 --max-time 10 || echo '000'",
-                                returnStdout: true
-                            ).trim()
+                            def httpCode = ''
+                            def response = ''
                             
-                            if (httpCode == '200') {
-                                echo "✓ HTTP Response Code: ${httpCode}"
-                                
-                                // Get the actual response content
-                                def response = sh(
-                                    script: "curl -s http://${publicIp}",
-                                    returnStdout: true
-                                ).trim()
-                                
-                                echo ''
-                                echo 'Response received from EC2:'
-                                echo '─────────────────────────────────────────────────────'
-                                echo response.take(500) // Show first 500 characters
-                                echo '─────────────────────────────────────────────────────'
-                                
-                                // Validate required content
-                                echo ''
-                                echo 'Validating response content...'
-                                
-                                if (response.contains('CSA DevOps Exam')) {
-                                    echo "✓ Response contains: 'CSA DevOps Exam'"
+                            try {
+                                if (isUnix()) {
+                                    httpCode = sh(
+                                        script: "curl -s -o /dev/null -w '%{http_code}' http://${publicIp} --connect-timeout 5 --max-time 10 || echo '000'",
+                                        returnStdout: true
+                                    ).trim()
                                 } else {
-                                    error "✗ Response does NOT contain required text: 'CSA DevOps Exam'"
+                                    // For Windows, use PowerShell
+                                    httpCode = powershell(
+                                        script: """
+                                            try {
+                                                \$response = Invoke-WebRequest -Uri "http://${publicIp}" -TimeoutSec 10 -UseBasicParsing
+                                                \$response.StatusCode
+                                            } catch {
+                                                Write-Output "000"
+                                            }
+                                        """,
+                                        returnStdout: true
+                                    ).trim()
                                 }
                                 
-                                if (response.contains('Instance IP:')) {
-                                    echo "✓ Response contains: 'Instance IP:'"
-                                } else {
-                                    error "✗ Response does NOT contain required text: 'Instance IP:'"
+                                if (httpCode == '200') {
+                                    echo "✓ HTTP Response Code: ${httpCode}"
+                                    
+                                    // Get response content
+                                    if (isUnix()) {
+                                        response = sh(script: "curl -s http://${publicIp}", returnStdout: true).trim()
+                                    } else {
+                                        response = powershell(
+                                            script: """
+                                                \$response = Invoke-WebRequest -Uri "http://${publicIp}" -UseBasicParsing
+                                                \$response.Content
+                                            """,
+                                            returnStdout: true
+                                        ).trim()
+                                    }
+                                    
+                                    echo ''
+                                    echo 'Response received from EC2:'
+                                    echo '─────────────────────────────────────────────────────'
+                                    echo response.take(300)
+                                    echo '─────────────────────────────────────────────────────'
+                                    
+                                    // Validate content
+                                    if (response.contains('CSA DevOps Exam')) {
+                                        echo "✓ Response contains: 'CSA DevOps Exam'"
+                                    } else {
+                                        error "✗ Response missing: 'CSA DevOps Exam'"
+                                    }
+                                    
+                                    if (response.contains('Instance IP:')) {
+                                        echo "✓ Response contains: 'Instance IP:'"
+                                    } else {
+                                        error "✗ Response missing: 'Instance IP:'"
+                                    }
+                                    
+                                    validationSuccess = true
                                 }
-                                
-                                validationSuccess = true
-                                
-                            } else {
-                                echo "HTTP Response Code: ${httpCode} (Expected: 200)"
-                                if (attempt < maxAttempts) {
-                                    echo "Retrying in 5 seconds..."
-                                    sleep(time: 5, unit: 'SECONDS')
-                                }
+                            } catch (Exception e) {
+                                echo "Request failed: ${e.message}"
+                            }
+                            
+                            if (!validationSuccess && attempt < maxAttempts) {
+                                sleep(time: 5, unit: 'SECONDS')
                             }
                         }
                         
                         if (!validationSuccess) {
-                            error 'Deployment validation failed: NGINX not responding after maximum attempts'
+                            error 'Deployment validation failed: NGINX not responding'
                         }
                         
                         echo ''
                         echo '✓ STAGE 3 COMPLETED: Deployment validated successfully'
-                        echo "  - EC2 Public IP retrieved: ${publicIp}"
-                        echo "  - curl validation passed: ✓"
-                        echo "  - Response contains 'CSA DevOps Exam': ✓"
-                        echo "  - Response contains 'Instance IP:': ✓"
                     }
                 }
             }
@@ -286,49 +334,34 @@ pipeline {
                 
                 dir('terraform') {
                     script {
-                        // Retrieve final outputs
-                        def publicIp = sh(
-                            script: 'terraform output -raw instance_public_ip',
-                            returnStdout: true
-                        ).trim()
+                        def publicIp = ''
+                        def publicDns = ''
+                        def instanceId = ''
                         
-                        def publicDns = sh(
-                            script: 'terraform output -raw instance_public_dns',
-                            returnStdout: true
-                        ).trim()
+                        if (isUnix()) {
+                            publicIp = sh(script: 'terraform output -raw instance_public_ip', returnStdout: true).trim()
+                            publicDns = sh(script: 'terraform output -raw instance_public_dns', returnStdout: true).trim()
+                            instanceId = sh(script: 'terraform output -raw instance_id', returnStdout: true).trim()
+                        } else {
+                            publicIp = bat(script: '@terraform output -raw instance_public_ip', returnStdout: true).trim()
+                            publicDns = bat(script: '@terraform output -raw instance_public_dns', returnStdout: true).trim()
+                            instanceId = bat(script: '@terraform output -raw instance_id', returnStdout: true).trim()
+                        }
                         
-                        def instanceId = sh(
-                            script: 'terraform output -raw instance_id',
-                            returnStdout: true
-                        ).trim()
-                        
-                        // Print application URL
                         echo ''
                         echo '╔════════════════════════════════════════════════════════════╗'
                         echo '║              DEPLOYMENT SUCCESSFUL                         ║'
                         echo '╠════════════════════════════════════════════════════════════╣'
-                        echo '║                                                            ║'
-                        echo "║  Application URL:  http://${publicIp.padRight(32)} ║"
-                        echo "║  EC2 Public IP:    ${publicIp.padRight(37)} ║"
-                        echo "║  EC2 Public DNS:   ${publicDns.padRight(37)} ║"
-                        echo "║  Instance ID:      ${instanceId.padRight(37)} ║"
-                        echo '║                                                            ║'
+                        echo "║  Application URL:  http://${publicIp}                      ║"
+                        echo "║  EC2 Public IP:    ${publicIp}                             ║"
+                        echo "║  EC2 Public DNS:   ${publicDns}                            ║"
+                        echo "║  Instance ID:      ${instanceId}                           ║"
                         echo '║  Status: ✓ Deployment completed successfully              ║'
-                        echo '║                                                            ║'
                         echo '╚════════════════════════════════════════════════════════════╝'
                         echo ''
-                        
-                        // Indicate successful deployment
                         echo '✓ STAGE 4 COMPLETED: Results printed'
                         echo ''
                         echo 'All 4 mandatory stages completed successfully!'
-                        echo ''
-                        echo 'Stage Summary:'
-                        echo '  1. Deploy Infrastructure (IaC)          - ✓ COMPLETED'
-                        echo '  2. Configure EC2 & Deploy Application   - ✓ COMPLETED'
-                        echo '  3. Deployment Validation                - ✓ COMPLETED'
-                        echo '  4. Output Results                       - ✓ COMPLETED'
-                        echo ''
                         echo "Access your application at: http://${publicIp}"
                     }
                 }
@@ -346,8 +379,13 @@ pipeline {
                 
                 dir('terraform') {
                     script {
-                        sh 'terraform init -reconfigure'
-                        sh 'terraform destroy -auto-approve'
+                        if (isUnix()) {
+                            sh 'terraform init -reconfigure'
+                            sh 'terraform destroy -auto-approve'
+                        } else {
+                            bat 'terraform init -reconfigure'
+                            bat 'terraform destroy -auto-approve'
+                        }
                         echo '✓ Infrastructure destroyed successfully'
                     }
                 }
@@ -358,7 +396,8 @@ pipeline {
     post {
         success {
             script {
-                if (params.DESTROY_INFRASTRUCTURE) {
+                def destroyMode = params.DESTROY_INFRASTRUCTURE ?: false
+                if (destroyMode) {
                     echo ''
                     echo '╔════════════════════════════════════════════════╗'
                     echo '║   Infrastructure Destroyed Successfully       ║'
@@ -384,14 +423,27 @@ pipeline {
         
         always {
             script {
-                // Archive Terraform outputs
+                // Archive Terraform outputs (Windows-compatible)
                 dir('terraform') {
-                    sh '''
-                        if [ -f "tfplan" ]; then
-                            terraform show -json tfplan > tfplan.json 2>/dev/null || true
-                        fi
-                    '''
-                    archiveArtifacts artifacts: 'tfplan.json', allowEmptyArchive: true
+                    try {
+                        if (isUnix()) {
+                            sh '''
+                                if [ -f "tfplan" ]; then
+                                    terraform show -json tfplan > tfplan.json 2>/dev/null || true
+                                fi
+                            '''
+                        } else {
+                            bat '''
+                                @echo off
+                                if exist tfplan (
+                                    terraform show -json tfplan > tfplan.json 2>nul
+                                )
+                            '''
+                        }
+                        archiveArtifacts artifacts: 'tfplan.json', allowEmptyArchive: true
+                    } catch (Exception e) {
+                        echo "Could not archive artifacts: ${e.message}"
+                    }
                 }
             }
         }
