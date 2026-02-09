@@ -346,7 +346,7 @@ http://<EC2_PUBLIC_IP>
 
 ---
 
-## ?? Project Highlights for Recruiters
+## ?? Project Highlights
 
 ### **Skills Demonstrated**
 
